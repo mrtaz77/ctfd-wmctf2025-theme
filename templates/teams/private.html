@@ -379,7 +379,7 @@
         <br>
       {% endif %}
 
-      <div class="row">
+      <div class="row" x-data="TeamSolves">
         <div class="col-md-12">
           <h3>{% trans %}Solves{% endtrans %}</h3>
           <table class="table table-striped align-middle">
@@ -396,8 +396,7 @@
             {% for solve in solves %}
               <tr>
                 <td>
-                  <a href="{{ url_for('challenges.listing') }}#{{ solve.challenge.name }}-{{ solve.challenge.id }}">
-                    {{ solve.challenge.name }}
+                  <a href="{{ url_for('challenges.listing') }}#{{ solve.challenge.name }}-{{ solve.challenge.id }}" x-text="getCleanChallengeName('{{ solve.challenge.name }}')">
                   </a>
                 </td>
                 <td class="d-none d-md-block d-lg-block">{{ solve.challenge.category }}</td>
@@ -496,5 +495,18 @@
 
       window.team_captain = {{ (user.id == team.captain_id) | tojson }};
   </script>
+
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('TeamSolves', () => ({
+        getCleanChallengeName(challengeName) {
+          if (!challengeName) return '';
+          // Remove prefix tags [EASY], [MEDIUM], [HARD]
+          return challengeName.replace(/^\[(EASY|MEDIUM|HARD)\]\s*/i, '').trim();
+        }
+      }));
+    });
+  </script>
+
   {{ Assets.js("assets/js/teams/private.js") }}
 {% endblock %}
