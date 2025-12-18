@@ -10,9 +10,6 @@
             <i class="fas fa-trophy text-warning me-3"></i>
             {% trans %}Scoreboard{% endtrans %}
           </h1>
-          <p class="lead mb-4 slide-up" style="animation-delay: 0.1s;">
-            {% trans %}See how you rank against other competitors and track your progress in real-time.{% endtrans %}
-          </p>
         </div>
         <div class="col-lg-4 text-center d-none d-lg-block">
           <div class="hero-stats slide-up" style="animation-delay: 0.2s;" x-data="TopRankings" x-init="loadTopRankings()">
@@ -56,7 +53,7 @@
             </h5>
           </div>
           <div class="card-body p-0">
-            <div id="score-graph" class="align-items-center min-vh-25" :class="{'d-flex': show, 'd-none': !show}" x-data="ScoreboardDetail" x-ref="scoregraph" @bracket-change.window="activeBracket=$event.detail; update();">
+            <div id="score-graph" class="align-items-center min-vh-50" :class="{'d-flex': show, 'd-none': !show}" x-data="ScoreboardDetail" x-ref="scoregraph" @bracket-change.window="activeBracket=$event.detail; update();">
               <div class="col-12 text-center py-5">
                 <div class="spinner-container">
                   <div class="spinner-circle"></div>
@@ -146,7 +143,7 @@
                       <!-- Challenge columns by category -->
                       <template x-for="challenge in sortedChallenges" :key="challenge.id">
                         <th class="text-center challenge-header text-white" style="width: 80px; min-width: 80px;" :style="getCategoryStyle(challenge.category)">
-                          <div class="challenge-name small fw-bold mb-1" x-text="challenge.name" :title="challenge.name"></div>
+                          <div class="challenge-name small fw-bold mb-1" :title="challenge.name" x-html="formatChallengeName(challenge.name)"></div>
                           <div class="challenge-points small" x-text="challenge.value + ' pts'" style="opacity: 0.8;"></div>
                           <div class="challenge-category small" x-text="challenge.category.toUpperCase()" style="opacity: 0.6; font-size: 0.6rem;"></div>
                         </th>
@@ -244,8 +241,8 @@
 
   <style>
     /* Scoreboard specific styles */
-    .min-vh-25 {
-      min-height: 25vh;
+    .min-vh-50 {
+      min-height: 50vh;
     }
 
     .hero-stats {
@@ -397,10 +394,18 @@
 
     .challenge-name {
       max-width: 70px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      line-height: 1.2;
+      line-height: 1.3;
+      text-align: center;
+      margin: 0 auto;
+      display: inline-block;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    /* Allow wrapping at word boundaries created by wbr tags */
+    .challenge-name wbr {
+      display: inline-block;
+      width: 0;
     }
 
     .challenge-points {
@@ -680,7 +685,14 @@
             'pwn': 'background: #FF3B30 !important;',
             'reverse': 'background: #34C759 !important;',
             'forensics': 'background: #FF9500 !important;',
-            'misc': 'background: #8E8E93 !important;'
+            'misc': 'background: #8E8E93 !important;',
+            'steganography': 'background: #8E44AD !important;',
+            'osint': 'background: #3498DB !important;',
+            'network': 'background: #27AE60 !important;',
+            'mobile': 'background: #5856D6 !important;',
+            'blockchain': 'background: #16A085 !important;',
+            'ai': 'background: #E67E22 !important;',
+            'iot': 'background: #E74C3C !important;'
           };
           return colors[category.toLowerCase()] || 'background: #007AFF !important;';
         },
@@ -692,7 +704,14 @@
             'pwn': 'background: #FF3B30 !important;',
             'reverse': 'background: #34C759 !important;',
             'forensics': 'background: #FF9500 !important;',
-            'misc': 'background: #8E8E93 !important;'
+            'misc': 'background: #8E8E93 !important;',
+            'steganography': 'background: #8E44AD !important;',
+            'osint': 'background: #3498DB !important;',
+            'network': 'background: #27AE60 !important;',
+            'mobile': 'background: #5856D6 !important;',
+            'blockchain': 'background: #16A085 !important;',
+            'ai': 'background: #E67E22 !important;',
+            'iot': 'background: #E74C3C !important;'
           };
           return colors[category.toLowerCase()] || 'background: #007AFF !important;';
         },
@@ -700,17 +719,38 @@
         getSolveStatus(standing, challenge) {
           const solves = this.solveData[challenge.id];
           if (!solves || solves.length === 0) return 'unsolved';
-          
+
           // Check if this standing solved the challenge
           const solve = solves.find(s => s.account_id === standing.account_id);
           if (!solve) return 'unsolved';
-          
+
           // Determine if it's first/second/third blood
           const solveIndex = solves.findIndex(s => s.account_id === standing.account_id);
           if (solveIndex === 0) return 'first';
           if (solveIndex === 1) return 'second';
           if (solveIndex === 2) return 'third';
           return 'solved';
+        },
+
+        getCleanChallengeName(challengeName) {
+          if (!challengeName) return '';
+          // Remove prefix tags [EASY], [MEDIUM], [HARD]
+          return challengeName.replace(/^\[(EASY|MEDIUM|HARD)\]\s*/i, '').trim();
+        },
+
+        formatChallengeName(name) {
+          // First clean the challenge name to remove difficulty markers
+          const cleanName = this.getCleanChallengeName(name);
+
+          // If name contains multiple consecutive spaces, insert word break opportunities
+          // This allows the browser to break at these points only when necessary
+          if (cleanName.includes('  ')) {
+            // Replace 2+ consecutive spaces with just a <wbr> tag
+            // The <wbr> tag suggests a line break opportunity without forcing it
+            return cleanName.replace(/\s{2,}/g, '<wbr>');
+          }
+          // Otherwise, return the clean name as-is
+          return cleanName;
         }
       }));
     });

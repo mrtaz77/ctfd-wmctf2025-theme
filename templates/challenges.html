@@ -10,9 +10,6 @@
             <i class="fas fa-flag text-primary me-2"></i>
             {% trans %}Challenges{% endtrans %}
           </h1>
-          <p class="lead mb-0 slide-up" style="animation-delay: 0.1s;">
-            {% trans %}Test your skills and solve challenging problems{% endtrans %}
-          </p>
         </div>
       </div>
     </div>
@@ -52,7 +49,6 @@
                'reverse': 'fas fa-cogs',
                'forensics': 'fas fa-search',
                'misc': 'fas fa-puzzle-piece',
-               'binary': 'fas fa-file-code',
                'steganography': 'fas fa-eye',
                'osint': 'fas fa-satellite',
                'network': 'fas fa-network-wired',
@@ -68,16 +64,18 @@
            getCategoryColor(category) {
              const colors = {
                'web': 'text-primary',
-               'crypto': 'text-secondary', 
+               'crypto': 'text-secondary',
                'pwn': 'text-danger',
                'reverse': 'text-success',
                'forensics': 'text-warning',
                'misc': 'text-muted',
-               'binary': 'text-info',
                'steganography': 'text-dark',
                'osint': 'text-primary',
                'network': 'text-success',
-               'mobile': 'text-secondary'
+               'mobile': 'text-secondary',
+               'blockchain': 'text-info',
+               'ai': 'text-primary',
+               'iot': 'text-danger'
              };
              const key = category.toLowerCase();
              return colors[key] || 'text-info';
@@ -87,15 +85,17 @@
              const classes = {
                'web': 'bg-primary-subtle text-primary',
                'crypto': 'bg-secondary-subtle text-secondary',
-               'pwn': 'bg-danger-subtle text-danger', 
+               'pwn': 'bg-danger-subtle text-danger',
                'reverse': 'bg-success-subtle text-success',
                'forensics': 'bg-warning-subtle text-warning',
                'misc': 'bg-light text-muted',
-               'binary': 'bg-info-subtle text-info',
                'steganography': 'bg-dark-subtle text-dark',
                'osint': 'bg-primary-subtle text-primary',
                'network': 'bg-success-subtle text-success',
-               'mobile': 'bg-secondary-subtle text-secondary'
+               'mobile': 'bg-secondary-subtle text-secondary',
+               'blockchain': 'bg-info-subtle text-info',
+               'ai': 'bg-primary-subtle text-primary',
+               'iot': 'bg-danger-subtle text-danger'
              };
              const key = category.toLowerCase();
              return classes[key] || 'bg-info-subtle text-info';
@@ -540,11 +540,18 @@
 
     /* Category Colors */
     .category-web { border-left-color: #007AFF !important; }
-    .category-crypto { border-left-color: #5856D6 !important; }
+    .category-crypto { border-left-color: #f548d8 !important; }
     .category-pwn { border-left-color: #FF3B30 !important; }
     .category-reverse { border-left-color: #34C759 !important; }
     .category-forensics { border-left-color: #FF9500 !important; }
     .category-misc { border-left-color: #8E8E93 !important; }
+    .category-steganography { border-left-color: #8E44AD !important; }
+    .category-osint { border-left-color: #3498DB !important; }
+    .category-network { border-left-color: #27AE60 !important; }
+    .category-mobile { border-left-color: #5856D6 !important; }
+    .category-blockchain { border-left-color: #16A085 !important; }
+    .category-ai { border-left-color: #E67E22 !important; }
+    .category-iot { border-left-color: #E74C3C !important; }
 
     /* Challenge Card Styles - Compact */
     .challenge-card {
@@ -630,12 +637,14 @@
     }
 
     .challenge-card.challenge-solved {
-      border-color: var(--wmctf-success);
+      border-color: var(--wmctf-success) !important;
+      border-left-color: var(--wmctf-success) !important;
       background: linear-gradient(135deg, rgba(52, 199, 89, 0.05) 0%, rgba(52, 199, 89, 0.1) 100%);
     }
 
     .challenge-card.challenge-solved:hover {
-      border-color: var(--wmctf-success);
+      border-color: var(--wmctf-success) !important;
+      border-left-color: var(--wmctf-success) !important;
       box-shadow: 0 12px 48px rgba(52, 199, 89, 0.3);
     }
 
@@ -735,6 +744,8 @@
     }
 
     [data-bs-theme="dark"] .challenge-card.challenge-solved {
+      border-color: var(--wmctf-success) !important;
+      border-left-color: var(--wmctf-success) !important;
       background: linear-gradient(135deg, rgba(52, 199, 89, 0.1) 0%, rgba(52, 199, 89, 0.15) 100%);
     }
 
@@ -865,7 +876,7 @@
             this.notifications = [
               {
                 id: 1,
-                title: '{% trans %}Welcome to WMCTF!{% endtrans %}',
+                title: '{% trans %}Welcome to BUET CTF!{% endtrans %}',
                 content: '{% trans %}Good luck in the competition!{% endtrans %}',
                 date: new Date().toISOString(),
                 viewed: false
