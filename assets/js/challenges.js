@@ -81,6 +81,42 @@ Alpine.data("Challenge", () => ({
 
   async init() {
     highlight();
+    
+    // Watch for changes in challenge modal content to re-execute container scripts
+    this.$watch('$store.challenge.data.view', (value) => {
+      if (value) {
+        // Use nextTick to ensure DOM is updated before executing scripts
+        Alpine.nextTick(() => {
+          // Re-execute any inline scripts in the challenge view
+          this.executeInlineScripts();
+        });
+      }
+    });
+  },
+
+  executeInlineScripts() {
+    // Find and execute any inline scripts in the challenge modal
+    const modal = document.querySelector('#challenge-window');
+    if (modal) {
+      const scripts = modal.querySelectorAll('script');
+      scripts.forEach(script => {
+        if (script.innerHTML) {
+          try {
+            eval(script.innerHTML);
+          } catch (e) {
+            console.log('Error executing inline script:', e);
+          }
+        }
+      });
+      
+      // Trigger any img onerror handlers (used by container plugin)
+      const imgs = modal.querySelectorAll('img[onerror]');
+      imgs.forEach(img => {
+        if (img.onerror) {
+          img.onerror();
+        }
+      });
+    }
   },
 
   getCleanChallengeName(challengeName) {
@@ -114,10 +150,6 @@ Alpine.data("Challenge", () => ({
       console.log(error);
     }
     return styles;
-  },
-
-  async init() {
-    highlight();
   },
 
   async showChallenge() {
@@ -327,6 +359,18 @@ Alpine.data("ChallengeBoard", () => ({
       // nextTick is required here because we're working in a callback
       Alpine.nextTick(() => {
         let modal = Modal.getOrCreateInstance("[x-ref='challengeWindow']");
+        
+        // Wait for modal to be shown before executing scripts
+        modal._element.addEventListener('shown.bs.modal', () => {
+          // Give Alpine time to render the content
+          setTimeout(() => {
+            const challengeComponent = Alpine.$data(document.querySelector('[x-data="Challenge"]'));
+            if (challengeComponent && challengeComponent.executeInlineScripts) {
+              challengeComponent.executeInlineScripts();
+            }
+          }, 100);
+        }, { once: true });
+        
         // TODO: Get rid of this private attribute access
         // See https://github.com/twbs/bootstrap/issues/31266
         modal._element.addEventListener(
