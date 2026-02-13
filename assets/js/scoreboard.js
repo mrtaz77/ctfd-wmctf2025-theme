@@ -37,6 +37,52 @@ Alpine.data("ScoreboardList", () => ({
   standings: [],
   brackets: [],
   activeBracket: null,
+  currentPage: 1,
+  perPage: 50,
+
+  get filteredStandings() {
+    return this.standings.filter(i => this.activeBracket ? i.bracket_id == this.activeBracket : true);
+  },
+
+  get totalPages() {
+    return Math.ceil(this.filteredStandings.length / this.perPage);
+  },
+
+  get paginatedStandings() {
+    const start = (this.currentPage - 1) * this.perPage;
+    const end = start + this.perPage;
+    return this.filteredStandings.slice(start, end);
+  },
+
+  get startIndex() {
+    return (this.currentPage - 1) * this.perPage;
+  },
+
+  get showingFrom() {
+    return this.filteredStandings.length > 0 ? this.startIndex + 1 : 0;
+  },
+
+  get showingTo() {
+    return Math.min(this.startIndex + this.perPage, this.filteredStandings.length);
+  },
+
+  goToPage(page) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  },
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  },
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  },
 
   async update() {
     this.brackets = await CTFd.pages.scoreboard.getBrackets(CTFd.config.userMode);
@@ -46,6 +92,7 @@ Alpine.data("ScoreboardList", () => ({
   async init() {
     this.$watch("activeBracket", value => {
       this.$dispatch("bracket-change", value);
+      this.currentPage = 1; // Reset to first page when bracket changes
     });
 
     this.update();

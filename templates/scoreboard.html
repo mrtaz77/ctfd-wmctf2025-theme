@@ -151,26 +151,26 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <template x-for="(standing, index) in standings.filter(i => activeBracket ? i.bracket_id==activeBracket : true).slice(0, 20)" :key="standing.account_id">
-                      <tr class="scoreboard-row" :class="{'top-performer': index < 3}">
+                    <template x-for="(standing, index) in paginatedStandings" :key="standing.account_id">
+                      <tr class="scoreboard-row" :class="{'top-performer': (startIndex + index) < 3}">
                         <!-- Rank -->
                         <td class="sticky-left text-center">
                           <div class="rank-badge-small" :class="{
-                            'rank-1': index === 0,
-                            'rank-2': index === 1,
-                            'rank-3': index === 2
+                            'rank-1': (startIndex + index) === 0,
+                            'rank-2': (startIndex + index) === 1,
+                            'rank-3': (startIndex + index) === 2
                           }">
-                            <template x-if="index === 0">
+                            <template x-if="(startIndex + index) === 0">
                               <span class="small">🥇</span>
                             </template>
-                            <template x-if="index === 1">
+                            <template x-if="(startIndex + index) === 1">
                               <span class="small">🥈</span>
                             </template>
-                            <template x-if="index === 2">
+                            <template x-if="(startIndex + index) === 2">
                               <span class="small">🥉</span>
                             </template>
-                            <template x-if="index > 2">
-                              <span class="fw-bold small" x-text="index + 1"></span>
+                            <template x-if="(startIndex + index) > 2">
+                              <span class="fw-bold small" x-text="startIndex + index + 1"></span>
                             </template>
                           </div>
                         </td>
@@ -215,6 +215,66 @@
                 </table>
               </div>
             </div>
+            <!-- Pagination Controls -->
+            <template x-if="totalPages > 1">
+              <div class="card-footer bg-light border-0 py-3">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                  <div class="text-muted small">
+                    {% trans %}Showing{% endtrans %} <span class="fw-bold" x-text="showingFrom"></span> - <span class="fw-bold" x-text="showingTo"></span> {% trans %}of{% endtrans %} <span class="fw-bold" x-text="filteredStandings.length"></span> {% trans %}teams{% endtrans %}
+                  </div>
+                  <nav aria-label="Scoreboard pagination">
+                    <ul class="pagination pagination-sm mb-0">
+                      <!-- Previous Button -->
+                      <li class="page-item" :class="{'disabled': currentPage === 1}">
+                        <button class="page-link rounded-start-pill" @click="prevPage()" :disabled="currentPage === 1">
+                          <i class="fas fa-chevron-left"></i>
+                        </button>
+                      </li>
+
+                      <!-- First page -->
+                      <li class="page-item" :class="{'active': currentPage === 1}">
+                        <button class="page-link" @click="goToPage(1)">1</button>
+                      </li>
+
+                      <!-- Ellipsis after first page -->
+                      <template x-if="currentPage > 3">
+                        <li class="page-item disabled">
+                          <span class="page-link">...</span>
+                        </li>
+                      </template>
+
+                      <!-- Pages around current page -->
+                      <template x-for="page in Array.from({length: totalPages}, (_, i) => i + 1).filter(p => p !== 1 && p !== totalPages && p >= currentPage - 1 && p <= currentPage + 1)" :key="page">
+                        <li class="page-item" :class="{'active': currentPage === page}">
+                          <button class="page-link" @click="goToPage(page)" x-text="page"></button>
+                        </li>
+                      </template>
+
+                      <!-- Ellipsis before last page -->
+                      <template x-if="currentPage < totalPages - 2">
+                        <li class="page-item disabled">
+                          <span class="page-link">...</span>
+                        </li>
+                      </template>
+
+                      <!-- Last page -->
+                      <template x-if="totalPages > 1">
+                        <li class="page-item" :class="{'active': currentPage === totalPages}">
+                          <button class="page-link" @click="goToPage(totalPages)" x-text="totalPages"></button>
+                        </li>
+                      </template>
+
+                      <!-- Next Button -->
+                      <li class="page-item" :class="{'disabled': currentPage === totalPages}">
+                        <button class="page-link rounded-end-pill" @click="nextPage()" :disabled="currentPage === totalPages">
+                          <i class="fas fa-chevron-right"></i>
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -342,6 +402,32 @@
       color: white;
     }
 
+    /* Pagination Styles */
+    .pagination .page-link {
+      border: none;
+      color: var(--wmctf-primary);
+      background: transparent;
+      padding: 0.5rem 0.75rem;
+      margin: 0 0.125rem;
+      transition: all 0.2s ease;
+    }
+
+    .pagination .page-link:hover {
+      background: rgba(0, 122, 255, 0.1);
+      color: var(--wmctf-primary);
+    }
+
+    .pagination .page-item.active .page-link {
+      background: var(--wmctf-primary);
+      color: white;
+      border-radius: 0.375rem;
+    }
+
+    .pagination .page-item.disabled .page-link {
+      color: var(--light-muted);
+      background: transparent;
+    }
+
     /* Dark mode adjustments */
     [data-bs-theme="dark"] .hero-stats {
       background: rgba(28, 28, 30, 0.6);
@@ -363,6 +449,22 @@
 
     [data-bs-theme="dark"] .progress {
       background: var(--dark-surface);
+    }
+
+    [data-bs-theme="dark"] .pagination .page-link {
+      color: var(--wmctf-primary);
+    }
+
+    [data-bs-theme="dark"] .pagination .page-link:hover {
+      background: rgba(0, 122, 255, 0.2);
+    }
+
+    [data-bs-theme="dark"] .pagination .page-item.disabled .page-link {
+      color: var(--dark-muted);
+    }
+
+    [data-bs-theme="dark"] .card-footer.bg-light {
+      background: var(--dark-surface) !important;
     }
 
     /* Challenge Matrix Styles */

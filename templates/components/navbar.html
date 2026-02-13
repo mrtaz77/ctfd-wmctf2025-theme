@@ -148,11 +148,11 @@
         <li class="nav-item dropdown">
           <button class="nav-link px-3 py-2 rounded-pill fw-500 border-0 bg-transparent dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Change language{% endtrans %}">
             <i class="fas fa-language"></i>
-            <span class="d-none d-lg-inline ms-1">{{ get_locale().upper() }}</span>
+            <span class="d-none d-lg-inline ms-1">{{ (get_locale() or 'en').upper() }}</span>
           </button>
           <form x-data="LanguageForm">
             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 mt-2" style="overflow: hidden;">
-              {% set curr_lang = get_locale() %}
+              {% set curr_lang = get_locale() or 'en' %}
               {%- for lang in Languages.names.items() %}
               <li>
                   <span class="dropdown-item d-flex align-items-center py-2 {{ 'bg-primary text-white' if (curr_lang == lang[0]) }}" @click="set" value="{{ lang[0] }}" style="cursor: pointer;">
